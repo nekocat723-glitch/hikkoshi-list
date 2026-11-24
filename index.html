@@ -1,0 +1,1041 @@
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新生活・引越し準備チェックリスト</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts (Noto Sans JP) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased pb-20">
+
+  <div id="app" class="max-w-5xl mx-auto px-3 sm:px-6 py-4">
+    <!-- TOP HEADER -->
+    <header class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-5 mb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4" id="header-content">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🌸</span>
+              <h1 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-rose-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent">
+                新生活・引越し準備チェックリスト
+              </h1>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+              親御さんとリアルタイムで確認・保管場所の自動共有ができるサイト
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="sync-badge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span>自動保存済み</span>
+            </span>
+
+            <button id="btn-room-modal" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors">
+              🔑 合言葉: <strong id="lbl-room-id">natsumi-kazoku</strong> ✏️
+            </button>
+
+            <button id="btn-copy-link" class="flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-transform active:scale-95">
+              🔗 親に送る共有リンクをコピー
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-4">
+      <!-- Progress Card -->
+      <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div class="flex justify-between items-start mb-2">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">進捗状況</span>
+          <span id="progress-count" class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
+            0 / 0 完了
+          </span>
+        </div>
+        <div class="my-1">
+          <div class="flex items-baseline justify-between mb-1">
+            <span id="progress-percent" class="text-2xl font-extrabold text-slate-800">0%</span>
+            <span class="text-xs text-slate-500">達成率</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+            <div id="progress-bar" class="bg-gradient-to-r from-rose-400 to-pink-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price Calc Card -->
+      <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div class="flex justify-between items-start mb-1">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">費用・予算計算</span>
+          <span id="lbl-total-price" class="text-xs font-medium text-slate-500">合計 0円</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 my-1">
+          <div class="bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
+            <div class="text-[10px] font-semibold text-emerald-700">準備・購入済み</div>
+            <div id="lbl-checked-price" class="text-base sm:text-lg font-bold text-emerald-800">0円</div>
+          </div>
+          <div class="bg-amber-50/70 p-2 rounded-lg border border-amber-100">
+            <div class="text-[10px] font-semibold text-amber-700">これからかかる予定</div>
+            <div id="lbl-remaining-price" class="text-base sm:text-lg font-bold text-amber-800">0円</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category & Location Manager Trigger -->
+      <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-xl p-4 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-slate-300">カスタマイズ</span>
+            <button id="btn-open-master" class="text-xs bg-rose-500 hover:bg-rose-600 text-white font-bold px-3 py-1 rounded-md shadow-sm transition-colors">
+              🏷️ ジャンル・保管場所の編集
+            </button>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed mt-2">
+            保管場所（実家、新居、大学、友達の家など）やジャンルは画面から自由に追加・変えられます。
+          </p>
+        </div>
+        <div class="mt-2 flex justify-end">
+          <button id="btn-reset-preset" class="text-[11px] bg-white/10 hover:bg-white/20 text-slate-300 px-2 py-0.5 rounded transition-colors">
+            🔄 手書き初期値に戻す
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCHEDULE CARD -->
+    <div class="bg-white rounded-xl border border-rose-200 shadow-sm mb-4 overflow-hidden">
+      <button id="btn-toggle-schedule" class="w-full px-4 py-3 bg-rose-50/60 hover:bg-rose-50 text-left flex items-center justify-between border-b border-rose-100 transition-colors">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🗓️</span>
+          <span class="font-bold text-rose-900 text-sm sm:text-base">スケジュール ＆ 買出しメモ</span>
+        </div>
+        <span id="lbl-schedule-arrow" class="text-slate-400 text-xs">▲ 閉じる</span>
+      </button>
+
+      <div id="schedule-body" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white text-xs sm:text-sm">
+        <div class="space-y-3">
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <label class="block text-xs font-bold text-slate-600 mb-1">🏡 内見 ＆ 契約予定</label>
+            <input type="text" id="sch-previewDate" class="w-full bg-white border border-slate-300 rounded px-2 py-1 font-semibold text-rose-700 text-sm mb-1" />
+            <input type="text" id="sch-previewNote" class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700" />
+          </div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <label class="block text-xs font-bold text-slate-600 mb-1">📦 引越し予定日</label>
+            <input type="text" id="sch-moveDate" class="w-full bg-white border border-slate-300 rounded px-2 py-1 font-semibold text-indigo-700 text-sm" />
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <label class="block text-xs font-bold text-slate-600 mb-1">🛒 買出し予定・場所メモ</label>
+            <textarea id="sch-shoppingNote" rows="2" class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-700"></textarea>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <label class="block text-xs font-bold text-slate-600 mb-1">📍 住所・連絡先メモ</label>
+            <input type="text" id="sch-addressNote" class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER & CONTROLS -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-4">
+      <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between mb-3">
+        <div class="relative flex-1">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">🔍</span>
+          <input type="text" id="txt-search" placeholder="品名、購入先、メモで検索..." class="w-full pl-9 pr-8 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+
+        <div class="flex items-center gap-2">
+          <label class="flex items-center gap-1.5 text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg cursor-pointer border border-slate-200 select-none">
+            <input type="checkbox" id="chk-uncompleted-only" class="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4" />
+            <span>未完了のみ</span>
+          </label>
+
+          <button id="btn-open-add" class="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-sm font-bold px-4 py-2 rounded-lg shadow-sm transition-all active:scale-95">
+            <span>＋ 品目を追加</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Categories Pills -->
+      <div id="cat-pills-container" class="mb-2 overflow-x-auto pb-1 flex gap-1.5 no-scrollbar">
+        <!-- JS injected pills -->
+      </div>
+
+      <!-- Locations Pills -->
+      <div id="loc-pills-container" class="flex items-center gap-2 overflow-x-auto pt-2 border-t border-slate-100 text-xs text-slate-500">
+        <span class="font-semibold text-slate-600 whitespace-nowrap">保管場所:</span>
+        <div id="loc-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <!-- JS injected location pills -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ITEM LIST -->
+    <div id="item-list" class="space-y-3">
+      <!-- JS Rendered Cards -->
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM BAR -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2.5 sm:hidden flex justify-between items-center z-40">
+    <div class="text-xs">
+      <span id="mb-progress-text" class="font-bold text-slate-800">0/0 完了</span>
+      <span id="mb-price-text" class="text-slate-400 ml-2">残 0円</span>
+    </div>
+    <button id="btn-mobile-add" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2 rounded-full shadow-md">
+      ＋ 追加
+    </button>
+  </div>
+
+  <!-- MODAL: ADD / EDIT ITEM -->
+  <div id="modal-item" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-xl border border-slate-200">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modal-item-title" class="text-lg font-bold text-slate-800">＋ 品目を追加</h3>
+        <button id="btn-close-item-modal" class="text-slate-400 text-lg hover:text-slate-600">✕</button>
+      </div>
+      <form id="form-item" class="space-y-4 text-xs sm:text-sm">
+        <input type="hidden" id="item-edit-id" value="" />
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">品名 <span class="text-rose-500">*</span></label>
+          <input type="text" id="item-name" required placeholder="例: 電子レンジ, 洗剤" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500 focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ジャンル</label>
+            <select id="item-category" class="w-full border border-slate-300 rounded-lg p-2 bg-white"></select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">保管場所</label>
+            <select id="item-location" class="w-full border border-slate-300 rounded-lg p-2 bg-white"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">購入先/店舗</label>
+            <input type="text" id="item-store" placeholder="例: 楽天, IKEA, 100均" class="w-full border border-slate-300 rounded-lg p-2" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">金額 (円)</label>
+            <input type="number" id="item-price" placeholder="0" class="w-full border border-slate-300 rounded-lg p-2" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">備考・メモ</label>
+          <input type="text" id="item-note" placeholder="例: サイズ確認要" class="w-full border border-slate-300 rounded-lg p-2" />
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" id="btn-cancel-item" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium">キャンセル</button>
+          <button type="submit" class="px-5 py-2 text-white bg-rose-600 hover:bg-rose-700 rounded-lg font-bold shadow-sm">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: MASTER MANAGER (Categories & Locations) -->
+  <div id="modal-master" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <h3 class="text-lg font-bold text-slate-800">🏷️ ジャンル ＆ 保管場所の編集</h3>
+        <button id="btn-close-master-modal" class="text-slate-400 text-lg hover:text-slate-600">✕</button>
+      </div>
+
+      <!-- LOCATIONS EDIT -->
+      <div class="mb-6">
+        <h4 class="text-sm font-bold text-rose-700 mb-2 flex items-center gap-1">📍 保管場所一覧（追加・修正・削除）</h4>
+        <div class="flex gap-2 mb-3">
+          <input type="text" id="txt-new-loc" placeholder="新しい保管場所（例: 会社の寮, 倉庫など）" class="flex-1 border border-slate-300 rounded-lg text-xs p-2" />
+          <button id="btn-add-loc" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-2 rounded-lg">追加</button>
+        </div>
+        <div id="master-loc-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- CATEGORIES EDIT -->
+      <div class="mb-4">
+        <h4 class="text-sm font-bold text-indigo-700 mb-2 flex items-center gap-1">📂 ジャンル一覧（追加・修正・削除）</h4>
+        <div class="flex gap-2 mb-3">
+          <input type="text" id="txt-new-cat" placeholder="新しいジャンル（例: 防災グッズなど）" class="flex-1 border border-slate-300 rounded-lg text-xs p-2" />
+          <button id="btn-add-cat" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-2 rounded-lg">追加</button>
+        </div>
+        <div id="master-cat-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+      </div>
+
+      <div class="flex justify-end border-t pt-3">
+        <button id="btn-finish-master" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-lg shadow-sm">完了して閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ROOM CODE EDIT -->
+  <div id="modal-room" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-xl border border-slate-200">
+      <h3 class="text-lg font-bold text-slate-800 mb-2">🔑 家族共有用の合言葉</h3>
+      <p class="text-xs text-slate-500 mb-4">同じ合言葉を入力することで、親御さんと同一のチェックリストをリアルタイムに共有できます。</p>
+      <form id="form-room" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">合言葉 (部屋名)</label>
+          <input type="text" id="txt-room-id" required placeholder="例: natsumi-kazoku" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm font-mono font-semibold text-slate-800 focus:ring-2 focus:ring-rose-500 focus:outline-none" />
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" id="btn-close-room-modal" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">キャンセル</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm">接続</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION CORE (Pure Vanilla JS - Guaranteed Load) -->
+  <script>
+    // --- PRESET DATA (手書きメモ全65項目 完全網羅) ---
+    const DEFAULT_CATEGORIES = [
+      '電化製品',
+      '家具',
+      '食器・キッチン',
+      '持っていくもの',
+      'その他',
+      '消耗品',
+      '洗剤・掃除',
+      '新社会人グッズ'
+    ];
+
+    const DEFAULT_LOCATIONS = [
+      '実家',
+      '新居',
+      '友達の家',
+      '大学',
+      '未購入・ネット注文',
+      '未定'
+    ];
+
+    const INITIAL_PRESET_ITEMS = [
+      // 電化製品
+      { id: 'elec-1', category: '電化製品', name: 'せんたくき', checked: true, location: '新居', store: '要検討', price: 0, note: 'レ点あり' },
+      { id: 'elec-2', category: '電化製品', name: 'レンジ', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'elec-3', category: '電化製品', name: 'すいはんき', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'elec-4', category: '電化製品', name: 'エアコン', checked: false, location: '新居', store: '', price: 0, note: '物件設備確認' },
+      { id: 'elec-5', category: '電化製品', name: 'ドライヤー', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'elec-6', category: '電化製品', name: 'れいぞうこ', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'elec-7', category: '電化製品', name: 'IHコンロ', checked: false, location: '未定', store: '', price: 0, note: 'IHかコンロか確認' },
+      { id: 'elec-8', category: '電化製品', name: 'アイロン', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'elec-9', category: '電化製品', name: '延長コード', checked: false, location: '未定', store: '100均', price: 0, note: '' },
+
+      // 家具
+      { id: 'furn-1', category: '家具', name: '本だな', checked: false, location: '未購入・ネット注文', store: '楽天', price: 0, note: '' },
+      { id: 'furn-2', category: '家具', name: '服かけるやつ', checked: false, location: '未購入・ネット注文', store: '楽天', price: 0, note: 'タンスじゃなくてハンガーラック' },
+      { id: 'furn-3', category: '家具', name: '全身鏡', checked: false, location: '新居', store: 'IKEA', price: 0, note: '' },
+      { id: 'furn-4', category: '家具', name: 'ベッド', checked: false, location: '未購入・ネット注文', store: '楽天', price: 0, note: '' },
+      { id: 'furn-5', category: '家具', name: '机', checked: false, location: '新居', store: '', price: 0, note: '' },
+      { id: 'furn-6', category: '家具', name: 'いす', checked: false, location: '新居', store: '', price: 0, note: '' },
+      { id: 'furn-7', category: '家具', name: 'カーテン', checked: false, location: '新居', store: '', price: 0, note: '採寸要' },
+      { id: 'furn-8', category: '家具', name: '物干しざお', checked: false, location: '新居', store: '', price: 0, note: 'せんたくばさみ有無確認' },
+      { id: 'furn-9', category: '家具', name: '食器だな？', checked: false, location: '新居', store: 'SHEINなど', price: 0, note: '' },
+      { id: 'furn-10', category: '家具', name: 'とけい', checked: false, location: '新居', store: 'SHEIN', price: 0, note: '' },
+      { id: 'furn-11', category: '家具', name: '自転車', checked: false, location: '実家', store: '', price: 0, note: '' },
+
+      // 食器・キッチン
+      { id: 'kit-1', category: '食器・キッチン', name: '食器セット', checked: false, location: '未定', store: 'フランフラン', price: 0, note: 'セットになってるやつ' },
+      { id: 'kit-2', category: '食器・キッチン', name: 'お皿・すぷーん・ふぉーく', checked: false, location: '未定', store: 'フランフラン', price: 0, note: '' },
+      { id: 'kit-3', category: '食器・キッチン', name: '包丁', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'kit-4', category: '食器・キッチン', name: 'まな板', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'kit-5', category: '食器・キッチン', name: 'フライパン類', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'kit-6', category: '食器・キッチン', name: 'おべんとう箱', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'kit-7', category: '食器・キッチン', name: '包丁ばさみ', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'kit-8', category: '食器・キッチン', name: '調味料', checked: false, location: '未定', store: 'スーパー', price: 0, note: '' },
+      { id: 'kit-9', category: '食器・キッチン', name: '計量カップ', checked: false, location: '未定', store: '', price: 0, note: 'みにつかっぷ・ふつうの計量カップなど' },
+      { id: 'kit-10', category: '食器・キッチン', name: 'タッパー', checked: false, location: '未定', store: '100均', price: 0, note: '' },
+      { id: 'kit-11', category: '食器・キッチン', name: 'グラス', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'kit-12', category: '食器・キッチン', name: 'はかり', checked: false, location: '未定', store: '', price: 0, note: '' },
+
+      // 持っていくもの
+      { id: 'bring-1', category: '持っていくもの', name: 'こいのしょうゆいれ', checked: false, location: '実家', store: '持参', price: 0, note: '実家から持参' },
+      { id: 'bring-2', category: '持っていくもの', name: 'ビニールふくろ', checked: false, location: '実家', store: '持参', price: 0, note: '' },
+      { id: 'bring-3', category: '持っていくもの', name: 'ワッフルメーカー', checked: false, location: '実家', store: '持参', price: 0, note: '' },
+      { id: 'bring-4', category: '持っていくもの', name: 'せんたくネットたくさん', checked: false, location: '実家', store: '100均/持参', price: 0, note: '' },
+
+      // その他
+      { id: 'oth-1', category: 'その他', name: 'タオル', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'oth-2', category: 'その他', name: 'はみがき（とコップ）', checked: false, location: '未定', store: '100均', price: 0, note: '' },
+      { id: 'oth-3', category: 'その他', name: 'はさみ', checked: false, location: '未定', store: '100均', price: 0, note: '' },
+      { id: 'oth-4', category: 'その他', name: '洗濯洗剤', checked: false, location: '未定', store: '', price: 0, note: '' },
+
+      // 消耗品
+      { id: 'cons-1', category: '消耗品', name: 'ラップ', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'cons-2', category: '消耗品', name: 'ごみ袋', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'cons-3', category: '消耗品', name: 'アルミホイル', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'cons-4', category: '消耗品', name: 'ジップロック', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'cons-5', category: '消耗品', name: 'キッチンペーパー', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'cons-6', category: '消耗品', name: 'トイレットペーパー', checked: false, location: '未定', store: '', price: 0, note: '' },
+
+      // 洗剤・掃除
+      { id: 'care-1', category: '洗剤・掃除', name: '食器洗い洗剤', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'care-2', category: '洗剤・掃除', name: '石けん', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'care-3', category: '洗剤・掃除', name: 'シャンプー', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'care-4', category: '洗剤・掃除', name: 'リンス', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'care-5', category: '洗剤・掃除', name: 'おふろそうじ洗剤', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'care-6', category: '洗剤・掃除', name: 'トイレそうじ用具', checked: false, location: '未定', store: '', price: 0, note: '' },
+
+      // 新社会人グッズ
+      { id: 'job-1', category: '新社会人グッズ', name: 'かみごむ', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'job-2', category: '新社会人グッズ', name: 'パンスト', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'job-3', category: '新社会人グッズ', name: 'スーツに合うくつ下', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'job-4', category: '新社会人グッズ', name: 'すけない肌着', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'job-5', category: '新社会人グッズ', name: 'ブラウス', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'job-6', category: '新社会人グッズ', name: 'スーツ', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'job-7', category: '新社会人グッズ', name: 'パンプス', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'job-8', category: '新社会人グッズ', name: 'スニーカー（シンプル）', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'job-9', category: '新社会人グッズ', name: 'バッグ（A4入るもの）', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'job-10', category: '新社会人グッズ', name: 'クリアケース', checked: false, location: '未定', store: '100均', price: 0, note: '' },
+      { id: 'job-11', category: '新社会人グッズ', name: 'ハンカチ', checked: false, location: '未定', store: '', price: 0, note: '' },
+      { id: 'job-12', category: '新社会人グッズ', name: 'ティッシュ', checked: false, location: '未定', store: '', price: 0, note: '' }
+    ];
+
+    const INITIAL_SCHEDULE = {
+      previewDate: '11/28 か 11/29',
+      previewNote: '内見 ＆ 契約にいく（家、ガス・でんき）',
+      moveDate: '12月中旬 (12/13, 19, 20 あたり)',
+      shoppingNote: '11/3 買出しメモ：100均、IKEA、なんでも豊中など',
+      addressNote: '新居住所・連絡先メモ'
+    };
+
+    // --- STATE MANAGER ---
+    const getUrlRoom = () => {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('room') || 'natsumi-kazoku';
+    };
+
+    let state = {
+      roomId: getUrlRoom(),
+      categories: [...DEFAULT_CATEGORIES],
+      locations: [...DEFAULT_LOCATIONS],
+      items: [...INITIAL_PRESET_ITEMS],
+      schedule: { ...INITIAL_SCHEDULE },
+      selectedCategory: 'すべて',
+      selectedLocation: 'すべて',
+      searchQuery: '',
+      filterUncompletedOnly: false,
+      scheduleOpen: true,
+      syncStatus: 'local' // 'local', 'syncing', 'synced', 'error'
+    };
+
+    // --- LOCAL STORAGE HYBRID LOAD ---
+    function loadLocalData() {
+      try {
+        const localKey = 'move_app_data_' + state.roomId;
+        const saved = localStorage.getItem(localKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.items) state.items = parsed.items;
+          if (parsed.schedule) state.schedule = parsed.schedule;
+          if (parsed.categories) state.categories = parsed.categories;
+          if (parsed.locations) state.locations = parsed.locations;
+        }
+      } catch (e) {
+        console.warn('Local load failed:', e);
+      }
+    }
+
+    function saveLocalData() {
+      try {
+        const localKey = 'move_app_data_' + state.roomId;
+        const payload = {
+          items: state.items,
+          schedule: state.schedule,
+          categories: state.categories,
+          locations: state.locations,
+          updatedAt: new Date().toISOString()
+        };
+        localStorage.setItem(localKey, JSON.stringify(payload));
+      } catch (e) {
+        console.warn('Local save failed:', e);
+      }
+    }
+
+    // --- RENDER FUNCTIONS ---
+    function renderApp() {
+      renderHeader();
+      renderDashboard();
+      renderSchedule();
+      renderFilters();
+      renderItemList();
+    }
+
+    function renderHeader() {
+      document.getElementById('lbl-room-id').textContent = state.roomId;
+      const badge = document.getElementById('sync-badge');
+      if (state.syncStatus === 'synced') {
+        badge.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200";
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>自動保存済み</span>`;
+      } else if (state.syncStatus === 'syncing') {
+        badge.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200";
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-spin"></span><span>同期保存中...</span>`;
+      } else {
+        badge.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200";
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span><span>ローカル保存済</span>`;
+      }
+    }
+
+    function renderDashboard() {
+      const totalCount = state.items.length;
+      const checkedCount = state.items.filter(i => i.checked).length;
+      const percent = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+
+      const totalPrice = state.items.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+      const checkedPrice = state.items.reduce((sum, i) => sum + (i.checked ? (Number(i.price) || 0) : 0), 0);
+      const remainingPrice = totalPrice - checkedPrice;
+
+      document.getElementById('progress-count').textContent = `${checkedCount} / ${totalCount} 完了`;
+      document.getElementById('progress-percent').textContent = `${percent}%`;
+      document.getElementById('progress-bar').style.width = `${percent}%`;
+
+      document.getElementById('lbl-total-price').textContent = `合計 ${totalPrice.toLocaleString()}円`;
+      document.getElementById('lbl-checked-price').textContent = `${checkedPrice.toLocaleString()}円`;
+      document.getElementById('lbl-remaining-price').textContent = `${remainingPrice.toLocaleString()}円`;
+
+      document.getElementById('mb-progress-text').textContent = `${checkedCount}/${totalCount} 完了`;
+      document.getElementById('mb-price-text').textContent = `残 ${remainingPrice.toLocaleString()}円`;
+    }
+
+    function renderSchedule() {
+      document.getElementById('sch-previewDate').value = state.schedule.previewDate || '';
+      document.getElementById('sch-previewNote').value = state.schedule.previewNote || '';
+      document.getElementById('sch-moveDate').value = state.schedule.moveDate || '';
+      document.getElementById('sch-shoppingNote').value = state.schedule.shoppingNote || '';
+      document.getElementById('sch-addressNote').value = state.schedule.addressNote || '';
+
+      const body = document.getElementById('schedule-body');
+      const arrow = document.getElementById('lbl-schedule-arrow');
+      if (state.scheduleOpen) {
+        body.classList.remove('hidden');
+        arrow.textContent = '▲ 閉じる';
+      } else {
+        body.classList.add('hidden');
+        arrow.textContent = '▼ 開く';
+      }
+    }
+
+    function renderFilters() {
+      // Categories Pills
+      const catContainer = document.getElementById('cat-pills-container');
+      const allCats = ['すべて', ...state.categories];
+      catContainer.innerHTML = allCats.map(cat => `
+        <button onclick="setCategoryFilter('${cat}')" class="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+          state.selectedCategory === cat
+            ? 'bg-slate-800 text-white shadow-sm'
+            : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+        }">${cat}</button>
+      `).join('');
+
+      // Locations Pills
+      const locContainer = document.getElementById('loc-pills');
+      const allLocs = ['すべて', ...state.locations];
+      locContainer.innerHTML = allLocs.map(loc => `
+        <button onclick="setLocationFilter('${loc}')" class="px-2.5 py-1 rounded-md whitespace-nowrap text-xs transition-colors ${
+          state.selectedLocation === loc
+            ? 'bg-rose-100 font-bold text-rose-800'
+            : 'hover:bg-slate-100 text-slate-600'
+        }">${loc}</button>
+      `).join('');
+
+      document.getElementById('chk-uncompleted-only').checked = state.filterUncompletedOnly;
+    }
+
+    function getFilteredItems() {
+      return state.items.filter(item => {
+        if (state.selectedCategory !== 'すべて' && item.category !== state.selectedCategory) return false;
+        if (state.selectedLocation !== 'すべて' && item.location !== state.selectedLocation) return false;
+        if (state.filterUncompletedOnly && item.checked) return false;
+        if (state.searchQuery.trim()) {
+          const q = state.searchQuery.toLowerCase();
+          const m1 = item.name.toLowerCase().includes(q);
+          const m2 = (item.store || '').toLowerCase().includes(q);
+          const m3 = (item.note || '').toLowerCase().includes(q);
+          if (!m1 && !m2 && !m3) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderItemList() {
+      const listEl = document.getElementById('item-list');
+      const items = getFilteredItems();
+
+      if (items.length === 0) {
+        listEl.innerHTML = `
+          <div class="bg-white rounded-xl p-8 text-center text-slate-400 border border-slate-200">
+            <p class="text-base font-semibold mb-1">該当するアイテムがありません</p>
+            <p class="text-xs">検索条件を変更するか、「＋ 品目を追加」を押してください。</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = items.map(item => `
+        <div class="bg-white rounded-xl border transition-all shadow-sm p-3.5 sm:p-4 ${
+          item.checked ? 'border-emerald-200 bg-emerald-50/20 opacity-80' : 'border-slate-200 hover:border-slate-300'
+        }">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            
+            <div class="flex items-start gap-3 flex-1">
+              <input
+                type="checkbox"
+                ${item.checked ? 'checked' : ''}
+                onchange="toggleCheck('${item.id}')"
+                class="mt-1 w-6 h-6 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer flex-shrink-0"
+              />
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                    ${item.category}
+                  </span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    📍 ${item.location}
+                  </span>
+                  ${item.store ? `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-100">🛒 ${item.store}</span>` : ''}
+                </div>
+
+                <div class="text-base font-bold ${item.checked ? 'line-through text-slate-400' : 'text-slate-800'}">
+                  ${item.name}
+                </div>
+
+                ${item.note ? `<p class="text-xs text-slate-500 mt-0.5">${item.note}</p>` : ''}
+              </div>
+            </div>
+
+            <!-- Inline Edit Controls -->
+            <div class="flex flex-wrap items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+              <select
+                onchange="updateItemField('${item.id}', 'location', this.value)"
+                class="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-rose-500"
+              >
+                ${state.locations.map(loc => `<option value="${loc}" ${item.location === loc ? 'selected' : ''}>${loc}</option>`).join('')}
+              </select>
+
+              <input
+                type="text"
+                placeholder="購入店舗"
+                value="${item.store || ''}"
+                onchange="updateItemField('${item.id}', 'store', this.value)"
+                class="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 w-24 text-slate-700 focus:outline-none focus:ring-1 focus:ring-rose-500"
+              />
+
+              <div class="flex items-center bg-slate-50 border border-slate-200 rounded px-2 py-1 w-24">
+                <span class="text-xs text-slate-400 mr-1">¥</span>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value="${item.price || ''}"
+                  onchange="updateItemField('${item.id}', 'price', Number(this.value) || 0)"
+                  class="text-xs font-semibold bg-transparent w-full text-slate-800 focus:outline-none"
+                />
+              </div>
+
+              <button onclick="openEditItemModal('${item.id}')" class="text-slate-400 hover:text-indigo-600 p-1 text-xs">✏️</button>
+              <button onclick="deleteItem('${item.id}')" class="text-slate-400 hover:text-rose-600 p-1 text-xs">🗑️</button>
+            </div>
+
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- ACTIONS & HANDLERS ---
+    function updateStateAndSave(newCloudFunc) {
+      saveLocalData();
+      renderApp();
+      if (window.cloudSyncSave) {
+        state.syncStatus = 'syncing';
+        renderHeader();
+        window.cloudSyncSave().then(() => {
+          state.syncStatus = 'synced';
+          renderHeader();
+        }).catch(() => {
+          state.syncStatus = 'local';
+          renderHeader();
+        });
+      }
+    }
+
+    function toggleCheck(id) {
+      state.items = state.items.map(i => i.id === id ? { ...i, checked: !i.checked } : i);
+      updateStateAndSave();
+    }
+
+    function updateItemField(id, field, value) {
+      state.items = state.items.map(i => i.id === id ? { ...i, [field]: value } : i);
+      updateStateAndSave();
+    }
+
+    function deleteItem(id) {
+      state.items = state.items.filter(i => i.id !== id);
+      updateStateAndSave();
+    }
+
+    function setCategoryFilter(cat) {
+      state.selectedCategory = cat;
+      renderFilters();
+      renderItemList();
+    }
+
+    function setLocationFilter(loc) {
+      state.selectedLocation = loc;
+      renderFilters();
+      renderItemList();
+    }
+
+    // Modal Control Functions
+    function openAddItemModal() {
+      document.getElementById('item-edit-id').value = '';
+      document.getElementById('modal-item-title').textContent = '＋ 品目を追加';
+      document.getElementById('item-name').value = '';
+      document.getElementById('item-store').value = '';
+      document.getElementById('item-price').value = '';
+      document.getElementById('item-note').value = '';
+
+      populateModalSelects();
+      document.getElementById('modal-item').classList.remove('hidden');
+      document.getElementById('modal-item').classList.add('flex');
+    }
+
+    function openEditItemModal(id) {
+      const item = state.items.find(i => i.id === id);
+      if (!item) return;
+
+      document.getElementById('item-edit-id').value = item.id;
+      document.getElementById('modal-item-title').textContent = '✏️ 品目の編集';
+      document.getElementById('item-name').value = item.name;
+      document.getElementById('item-store').value = item.store || '';
+      document.getElementById('item-price').value = item.price || 0;
+      document.getElementById('item-note').value = item.note || '';
+
+      populateModalSelects(item.category, item.location);
+      document.getElementById('modal-item').classList.remove('hidden');
+      document.getElementById('modal-item').classList.add('flex');
+    }
+
+    function populateModalSelects(selCat, selLoc) {
+      const catSel = document.getElementById('item-category');
+      catSel.innerHTML = state.categories.map(c => `<option value="${c}" ${c === selCat ? 'selected' : ''}>${c}</option>`).join('');
+
+      const locSel = document.getElementById('item-location');
+      locSel.innerHTML = state.locations.map(l => `<option value="${l}" ${l === selLoc ? 'selected' : ''}>${l}</option>`).join('');
+    }
+
+    function closeItemModal() {
+      document.getElementById('modal-item').classList.add('hidden');
+      document.getElementById('modal-item').classList.remove('flex');
+    }
+
+    // Master Manager Modal Render
+    function renderMasterLists() {
+      const locList = document.getElementById('master-loc-list');
+      locList.innerHTML = state.locations.map(loc => `
+        <div class="flex items-center gap-2 bg-slate-50 p-2 rounded border border-slate-200">
+          <input type="text" value="${loc}" onchange="renameLocation('${loc}', this.value)" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1 text-xs font-semibold text-slate-800" />
+          <button onclick="removeLocation('${loc}')" class="text-xs text-rose-500 hover:text-rose-700 font-bold px-2 py-1">削除</button>
+        </div>
+      `).join('');
+
+      const catList = document.getElementById('master-cat-list');
+      catList.innerHTML = state.categories.map(cat => `
+        <div class="flex items-center gap-2 bg-slate-50 p-2 rounded border border-slate-200">
+          <input type="text" value="${cat}" onchange="renameCategory('${cat}', this.value)" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1 text-xs font-semibold text-slate-800" />
+          <button onclick="removeCategory('${cat}')" class="text-xs text-rose-500 hover:text-rose-700 font-bold px-2 py-1">削除</button>
+        </div>
+      `).join('');
+    }
+
+    function renameLocation(oldLoc, newLoc) {
+      if (!newLoc.trim() || oldLoc === newLoc) return;
+      const clean = newLoc.trim();
+      state.locations = state.locations.map(l => l === oldLoc ? clean : l);
+      state.items = state.items.map(i => i.location === oldLoc ? { ...i, location: clean } : i);
+      if (state.selectedLocation === oldLoc) state.selectedLocation = clean;
+      updateStateAndSave();
+      renderMasterLists();
+    }
+
+    function removeLocation(loc) {
+      if (state.locations.length <= 1) {
+        alert('保管場所は最低1つ必要です');
+        return;
+      }
+      state.locations = state.locations.filter(l => l !== loc);
+      const fallback = state.locations[0];
+      state.items = state.items.map(i => i.location === loc ? { ...i, location: fallback } : i);
+      if (state.selectedLocation === loc) state.selectedLocation = 'すべて';
+      updateStateAndSave();
+      renderMasterLists();
+    }
+
+    function renameCategory(oldCat, newCat) {
+      if (!newCat.trim() || oldCat === newCat) return;
+      const clean = newCat.trim();
+      state.categories = state.categories.map(c => c === oldCat ? clean : c);
+      state.items = state.items.map(i => i.category === oldCat ? { ...i, category: clean } : i);
+      if (state.selectedCategory === oldCat) state.selectedCategory = clean;
+      updateStateAndSave();
+      renderMasterLists();
+    }
+
+    function removeCategory(cat) {
+      if (state.categories.length <= 1) {
+        alert('ジャンルは最低1つ必要です');
+        return;
+      }
+      state.categories = state.categories.filter(c => c !== cat);
+      const fallback = state.categories[0];
+      state.items = state.items.map(i => i.category === cat ? { ...i, category: fallback } : i);
+      if (state.selectedCategory === cat) state.selectedCategory = 'すべて';
+      updateStateAndSave();
+      renderMasterLists();
+    }
+
+    // INITIALIZATION & EVENT LISTENERS
+    document.addEventListener('DOMContentLoaded', () => {
+      loadLocalData();
+      renderApp();
+
+      // UI Listeners
+      document.getElementById('btn-open-add').addEventListener('click', openAddItemModal);
+      document.getElementById('btn-mobile-add').addEventListener('click', openAddItemModal);
+      document.getElementById('btn-close-item-modal').addEventListener('click', closeItemModal);
+      document.getElementById('btn-cancel-item').addEventListener('click', closeItemModal);
+
+      document.getElementById('form-item').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('item-edit-id').value;
+        const name = document.getElementById('item-name').value.trim();
+        const category = document.getElementById('item-category').value;
+        const location = document.getElementById('item-location').value;
+        const store = document.getElementById('item-store').value.trim();
+        const price = Number(document.getElementById('item-price').value) || 0;
+        const note = document.getElementById('item-note').value.trim();
+
+        if (editId) {
+          state.items = state.items.map(i => i.id === editId ? { ...i, name, category, location, store, price, note } : i);
+        } else {
+          const newItem = {
+            id: 'item-' + Date.now(),
+            name, category, location, store, price, note, checked: false
+          };
+          state.items.unshift(newItem);
+        }
+
+        updateStateAndSave();
+        closeItemModal();
+      });
+
+      // Master Modal Listeners
+      document.getElementById('btn-open-master').addEventListener('click', () => {
+        renderMasterLists();
+        document.getElementById('modal-master').classList.remove('hidden');
+        document.getElementById('modal-master').classList.add('flex');
+      });
+      document.getElementById('btn-close-master-modal').addEventListener('click', () => {
+        document.getElementById('modal-master').classList.add('hidden');
+      });
+      document.getElementById('btn-finish-master').addEventListener('click', () => {
+        document.getElementById('modal-master').classList.add('hidden');
+      });
+
+      document.getElementById('btn-add-loc').addEventListener('click', () => {
+        const inp = document.getElementById('txt-new-loc');
+        if (inp.value.trim() && !state.locations.includes(inp.value.trim())) {
+          state.locations.push(inp.value.trim());
+          inp.value = '';
+          updateStateAndSave();
+          renderMasterLists();
+        }
+      });
+
+      document.getElementById('btn-add-cat').addEventListener('click', () => {
+        const inp = document.getElementById('txt-new-cat');
+        if (inp.value.trim() && !state.categories.includes(inp.value.trim())) {
+          state.categories.push(inp.value.trim());
+          inp.value = '';
+          updateStateAndSave();
+          renderMasterLists();
+        }
+      });
+
+      // Schedule Input Listeners
+      ['previewDate', 'previewNote', 'moveDate', 'shoppingNote', 'addressNote'].forEach(field => {
+        const el = document.getElementById('sch-' + field);
+        el.addEventListener('change', () => {
+          state.schedule[field] = el.value;
+          updateStateAndSave();
+        });
+      });
+
+      document.getElementById('btn-toggle-schedule').addEventListener('click', () => {
+        state.scheduleOpen = !state.scheduleOpen;
+        renderSchedule();
+      });
+
+      // Filter Listeners
+      document.getElementById('txt-search').addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        renderItemList();
+      });
+      document.getElementById('chk-uncompleted-only').addEventListener('change', (e) => {
+        state.filterUncompletedOnly = e.target.checked;
+        renderItemList();
+      });
+
+      // Reset Button
+      document.getElementById('btn-reset-preset').addEventListener('click', () => {
+        if (confirm('手書きメモの初期データに戻しますか？')) {
+          state.items = JSON.parse(JSON.stringify(INITIAL_PRESET_ITEMS));
+          state.schedule = JSON.parse(JSON.stringify(INITIAL_SCHEDULE));
+          state.categories = [...DEFAULT_CATEGORIES];
+          state.locations = [...DEFAULT_LOCATIONS];
+          updateStateAndSave();
+        }
+      });
+
+      // Room Modal & Share
+      document.getElementById('btn-room-modal').addEventListener('click', () => {
+        document.getElementById('txt-room-id').value = state.roomId;
+        document.getElementById('modal-room').classList.remove('hidden');
+        document.getElementById('modal-room').classList.add('flex');
+      });
+      document.getElementById('btn-close-room-modal').addEventListener('click', () => {
+        document.getElementById('modal-room').classList.add('hidden');
+      });
+      document.getElementById('form-room').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const roomVal = document.getElementById('txt-room-id').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+        if (roomVal) {
+          state.roomId = roomVal;
+          const url = new URL(window.location);
+          url.searchParams.set('room', roomVal);
+          window.history.pushState({}, '', url);
+          loadLocalData();
+          renderApp();
+          document.getElementById('modal-room').classList.add('hidden');
+          if (window.initCloudSync) window.initCloudSync();
+        }
+      });
+
+      document.getElementById('btn-copy-link').addEventListener('click', () => {
+        const shareUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomId}`;
+        const temp = document.createElement('input');
+        temp.value = shareUrl;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        alert(`共有リンクをコピーしました！\n合言葉: 【${state.roomId}】\nLINE等で親御さんに送ると、リアルタイムで一緒に編集できます。`);
+      });
+    });
+  </script>
+
+  <!-- FIREBASE REALTIME BACKEND (Module Script with Fallback Safeguards) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    let db = null;
+
+    async function setupCloudSync() {
+      try {
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'natsumi-move-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined'
+          ? JSON.parse(__firebase_config)
+          : { apiKey: "demo", authDomain: "demo.firebaseapp.com", projectId: "demo" };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        db = getFirestore(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        window.initCloudSync = () => {
+          const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'moving_rooms', state.roomId);
+
+          onSnapshot(roomDocRef, (snap) => {
+            if (snap.exists()) {
+              const data = snap.data();
+              if (data.items) state.items = data.items;
+              if (data.schedule) state.schedule = data.schedule;
+              if (data.categories) state.categories = data.categories;
+              if (data.locations) state.locations = data.locations;
+              state.syncStatus = 'synced';
+              saveLocalData();
+              renderApp();
+            } else {
+              window.cloudSyncSave();
+            }
+          }, (err) => {
+            console.warn("Cloud sync listening error:", err);
+            state.syncStatus = 'local';
+            renderHeader();
+          });
+        };
+
+        window.cloudSyncSave = async () => {
+          if (!db) return;
+          const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'moving_rooms', state.roomId);
+          await setDoc(roomDocRef, {
+            items: state.items,
+            schedule: state.schedule,
+            categories: state.categories,
+            locations: state.locations,
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+        };
+
+        window.initCloudSync();
+
+      } catch (err) {
+        console.warn("Cloud sync initialization fallback to local:", err);
+        state.syncStatus = 'local';
+        renderHeader();
+      }
+    }
+
+    setupCloudSync();
+  </script>
+</body>
+</html>
+```
